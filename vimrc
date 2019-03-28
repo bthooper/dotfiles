@@ -21,6 +21,9 @@ Plugin 'kien/ctrlp.vim'
 " me...
 Plugin 'SirVer/ultisnips'
 
+" Support for using emmet
+Plugin 'mattn/emmet-vim'
+
 " Support for easily toggling comments.
 Plugin 'tpope/vim-commentary'
 
