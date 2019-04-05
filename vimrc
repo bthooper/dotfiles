@@ -67,6 +67,9 @@ Plugin 'reedes/vim-pencil'
 " End Vundle - all plugins must be before this call
 call vundle#end()
 
+" Change splits to open to the right or below
+set splitbelow
+set splitright
 
 " We have to turn this stuff back on if we want all of our features.
 syntax on " Syntax highlighting
