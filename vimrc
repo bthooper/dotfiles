@@ -7,11 +7,19 @@ set nocompatible
 " Plugins 
 call plug#begin('~/.vim/plug-ins')
 
-" Gobs and gobs of color schemes.....
-Plug 'flazz/vim-colorschemes'
+" Gruvbox colorscheme..and pretiier for some reason 
+Plug 'morhetz/gruvbox'
+Plug 'prettier/vim-prettier'
 
 " Support for easily toggling comments.
 Plug 'tpope/vim-commentary'
+
+" Auto pair brackets, parens, quotes
+Plug 'jiangmiao/auto-pairs'
+
+" Add fuzzy finder
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
 
 " Markdown support.
 Plug 'godlygeek/tabular'
@@ -20,10 +28,11 @@ Plug 'plasticboy/vim-markdown'
 " This plugin provides the Airline status bar at the bottom of the screen.
 Plug 'bling/vim-airline'
 
-" JavaScript/JSON Syntax Highlighting
-Plug 'pangloss/vim-javascript'
-Plug 'maxmellon/vim-jsx-pretty'
-Plug 'elzr/vim-json'
+" Syntax Highlighting
+Plug 'sheerun/vim-polyglot'
+
+" Code Completion
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
 " The Nerd Tree plugin, plus cool icons for it 
 Plug 'scrooloose/nerdtree'
@@ -61,6 +70,10 @@ set noswapfile " They're just annoying. Who likes them?
 set hidden " allow me to have buffers with unsaved changes.
 set autoread " when a file has changed on disk, just load it. Don't ask.
 
+" FORMATTERS
+let g:prettier#autoformat = 0
+autocmd BufWritePre *.js,*.jsx,*.mjs,*.ts,*.tsx,*.css,*.less,*.scss,*.json,*.graphql,*.md,*.vue PrettierAsync
+
 " Make search more sane
 set ignorecase " case insensitive search
 set smartcase " If there are uppercase letters, become case-sensitive.
@@ -86,8 +99,15 @@ noremap <leader>v <C-w>v
 " Clear match highlighting
 noremap <leader><space> :noh<cr>:call clearmatches()<cr>
 
-" Quick buffer switching - like cmd-tab'ing
-nnoremap <leader><leader> <c-^>
+" Reasonable split navigation
+ nnoremap <C-J> <C-W><C-J>
+ nnoremap <C-K> <C-W><C-K>
+ nnoremap <C-L> <C-W><C-L>
+ nnoremap <C-H> <C-W><C-H>
+
+ " Reasonable split openings
+ set splitbelow
+ set splitright
 
 " Visual line nav, not real line nav
 " If you wrap lines, vim by default won't let you move down one line to the
@@ -103,19 +123,66 @@ set laststatus=2
 " ColorScheme
 set number
 set background=dark
-colorscheme gruvbox 
+autocmd vimenter * colorscheme gruvbox
 
 " Configure netrw
 let g:netrw_liststyle = 3
 let g:netrw_banner = 0
-" autocmd vimenter * NERDTree " Start NERDTree when launching Vim
-autocmd vimenter * wincmd p
+" autocmd vimenter * NERDTree " Start NERDTree when launching Vim - don't
+" really like this feature....
 
 "Map NerdTREE
 map <C-n> :NERDTreeToggle<CR>
 let NERDTreeQuitOnOpen = 1
 let NERDTreeMinimalUI = 1
 let NERDTreeDirArrows = 1
+
+" FZF and navigation key bindings
+nnoremap <silent> <leader>f :Files<CR>
+nnoremap <silent> <leader>a :Buffers<CR>
+nnoremap <silent> <leader>s :Rg<CR>
+
+" Set up for COC
+set cmdheight=2
+set updatetime=300
+set shortmess+=c
+if has("patch-8.1.1564")
+  " Recently vim can merge signcolumn and number column into one
+  set signcolumn=number
+else
+  set signcolumn=yes
+endif
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+
+
+if has('nvim')
+  inoremap <silent><expr> <c-space> coc#refresh()
+else
+  inoremap <silent><expr> <c-@> coc#refresh()
+endif
+if exists('*complete_info')
+  inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
+else
+  inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+endif
+nnoremap <silent> K :call <SID>show_documentation()<CR>
+
+function! s:show_documentation()
+  if (index(['vim','help'], &filetype) >= 0)
+    execute 'h '.expand('<cword>')
+  else
+    call CocAction('doHover')
+  endif
+endfunction
 
 "Quit if I'm really done
 function! s:CloseIfOnlyControlWinLeft()
